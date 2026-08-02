@@ -1,2 +1,13 @@
-put all files in /www of your openwrt,replace the origin 'index.html'
-modify /assets/index.js
+这是一个主页文件，可以替换您的openwrt路由器的uhttpd或nas上的小型服务器的主页文件，替换后，当您通过dnns访问路由器或nas时，将会看到这个页面。为了确保您还能正常登录您的路由器或nas的管理页面，请将
+arrA.push([
+  { name: 'openwrt', icon: 'openwrt', url: '../cgi-bin/luci'}
+]);
+或
+arrA.push([
+  { name: 'NAS', icon: 'syno', port: '5001',lan:'https://192.168.1.5:5001' }
+]);
+（请按实际情况修改地址及端口号）添加到/assets/index.js中。
+
+本项目的作用：
+1 自动切换内外网：根据您所处的网络环境判断应呈现给您的网址。当您处在内网环境时，优先呈现给您内网地址，否则呈现给您外网地址。
+2 拓展菜单：arrA和arrB内的每个元素的第一个对象，将最为主页显示的对象，第二个及以后的对象，将作为该对象的右键或长按菜单中的对象。
