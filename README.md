@@ -1,4 +1,4 @@
-#用于替换openwrt路由器主页
+# 替换openwrt路由器主页
 
 ## 作用
 
@@ -14,6 +14,8 @@ openwrt路由器，请将本项目所有文件放入/www，群晖nas放入web文
 ```bash
 chmod -R 644 /www/assets /www/img /www/index.html
 ```
+
+![项目截图](https://raw.githubusercontent.com/q85497634/index.html/main/screenshots/123.png)
 
 ## 地址生成逻辑
 
