@@ -7,14 +7,12 @@ openwrt路由器，请将本项目所有文件放入/www，群晖nas放入web文
 ```bash
 chmod -R 644 /www/assets /www/img /www/index.html
 ```
-
 <br>
-本项目的作用：</br>
+## 作用：
 1 自动切换内外网：根据您所处的网络环境判断应呈现给您的网址。<br>
 2 拓展菜单：右键或长按导航页面图标，弹出拓展菜单（具体编写方法参见/assets/index.js）<br>
 <br>
-附：<br>
-地址生成逻辑：<br>
+## 地址生成逻辑：
 ①有url属性，返回url<br>
 ②有lan属性&&(通过内网ip访问||检测到内网ip)，返回lan<br>
 ③有wan属性，返回wan<br>
