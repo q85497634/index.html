@@ -1,18 +1,19 @@
-这是一个主页文件，可以替换您的openwrt路由器的uhttpd或nas上的小型服务器的主页文件<br>
-<br>
-替换后，当您通过dnns访问路由器或nas时，将会看到这个导航主页<br>
-项目使用前，应修改index.html中的ddns和lan_addr，并按自己的需求填写/assets/index.js的地址<br>
-openwrt路由器，请将本项目所有文件放入/www，群晖nas放入web文件夹下，其他设备请自行查阅<br>
-完成后执行:<br>
-```bash
-chmod -R 644 /www/assets /www/img /www/index.html
-```
+#用于替换openwrt路由器主页
 
 ## 作用
 
 1 自动切换内外网：根据您所处的网络环境判断应呈现给您的网址。<br>
 2 拓展菜单：右键或长按导航页面图标，弹出拓展菜单（具体编写方法参见/assets/index.js）<br>
 <br>
+
+## 部署
+
+修改index.html中的ddns和lan_addr，并按自己的需求填写/assets/index.js的地址<br>
+openwrt路由器，请将本项目所有文件放入/www，群晖nas放入web文件夹下，其他设备请自行查阅<br>
+完成后，openwrt执行:<br>
+```bash
+chmod -R 644 /www/assets /www/img /www/index.html
+```
 
 ## 地址生成逻辑
 
