@@ -76,5 +76,3 @@ arrB.push([
 arrB.push([
   { name: '酷友社', icon: 'kool', url: 'https://www.koolcenter.com' }
 ]);
-  ...blank
-]):
