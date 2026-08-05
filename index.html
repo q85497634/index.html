@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+     <script>
+        // ==============================================
+        // 初次部署前，在这里填ddns地址和项目部署内网地址，当访问者与主机在同一内网时，会自动生成内网地址
+        // 如果您的ipv6公网地址不是240开头的，请在本文件中搜索"[240"，修改成您的
+        // openwrt路由器中，本页面会覆盖原始的inex.html，可以提前备份原始文件
+        // 本页面只需修改下方的两个变量，其他所有的地址信息都在/assets/index.js中修改
+        var ddns="marco123.mario456.net";
+        var lan_addr="192.168.2.1"
+        // ==============================================
+    </script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="assets/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="assets/style.css" />
+    <title>title</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src='assets/index.js'></script>
+
+    <style>
+        /* 浮动提示框样式 */
+        #toast-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 100000;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: fadeIn 0.3s ease;
+        }
+
+        #toast-message.show {
+            display: flex;
+        }
+
+        #toast-message .icon {
+            font-size: 18px;
+        }
+
+        #toast-message .text {
+            font-weight: 500;
+        }
+
+        #toast-message.info {
+            background: rgba(33, 150, 243, 0.9);
+        }
+
+        #toast-message.success {
+            background: rgba(76, 175, 80, 0.9);
+        }
+
+        #toast-message.warning {
+            background: rgba(255, 152, 0, 0.9);
+        }
+
+        #toast-message.error {
+            background: rgba(244, 67, 54, 0.9);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        #customMenu .item.disabled {
+            color: #999 !important;
+            cursor: default !important;
+            background: transparent !important;
+            pointer-events: none;
+            /* 禁止点击 */
+        }
+
+        /* 自定义右键菜单 */
+        #customMenu {
+            position: absolute;
+            background: #fff;
+            min-width: 180px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 6px 0;
+            z-index: 99999;
+            display: none;
+            font-size: 14px;
+        }
+
+        #customMenu .item {
+            padding: 8px 15px;
+            cursor: pointer;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #customMenu .item img {
+            width: 16px;
+            height: 16px;
+            object-fit: contain;
+            mix-blend-mode: normal !important;
+            filter: none !important;
+            
+        }
+        #customMenu img,.item img {
+            filter: none !important;
+            -webkit-filter: none !important;
+            /* 关键：阻止任何父级继承的反色效果 */
+            isolation: isolate;
+        }
+
+        #customMenu .item:hover {
+            background: #f5f5f5;
+            color: #000;
+        }
+
+        #customMenu .line {
+            height: 1px;
+            background: #eee;
+            margin: 4px 0;
+        }
+
+        /* 防止长按出现系统菜单 */
+        a {
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wrap">
+        <div id="top">
+            <div id="logo">
+                <img class="logo" src="img/cloud.png">
+                <h1 id='title'>simon's Cloud</h1>
+                <div id="kg-btn" class="">
+                    <input class='tgl tgl-flip' id='qieh' type='checkbox' />
+                    <label class='tgl-btn' data-tg-off='主页' data-tg-on='副页' for='qieh'></label>
+                </div>
+            </div>
+        </div>
+        <div id="main">
+            <div id="app" class="app animated fadeInLeft">
+                <ul id='ul1'></ul>
+            </div>
+            <div id="app1" class="app animated fadeInRight">
+                <ul id='ul2'></ul>
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+    </div>
+    <div id="footer">
+        <div class="footer-contents">
+            <div class="links">
+                <div id="sign" class="line">
+                    2024.6.29&nbsp;&nbsp;&nbsp;&nbsp;<span class="footer-link-separator"></span>&nbsp;&nbsp;&nbsp;&nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右键菜单容器 -->
+    <div id="customMenu"></div>
+    <!-- 浮动提示框 -->
+    <div id="toast-message">
+        <span class="icon"></span>
+        <span class="text"></span>
+    </div>
+
+    <script>
+        // ==============================================
+        // 一些参数
+        // ==============================================
+        const showUrl=false;
+        const showCheck=false;
+        const getSegment = (ip) => ip.replace(/\.[^.]*$/, '.');
+        let timeOut = 1000;
+        // 获取主机名
+        var host;
+        //如果访问地址为lan_addr或以[240开头，则访问地址即为host，否则host为动态域名
+        if (window.location.hostname == lan_addr||window.location.hostname.startsWith('[240')) {
+            host = window.location.hostname;
+        } else {
+            host=ddns;
+        }
+        console.log('当前主机:' + host);
+        // ==============================================
+
+        
+        $(document).ready(function() {
+            // 填入签名和标题
+            // ==============================================
+            sign += '&nbsp;&nbsp;&nbsp;&nbsp;';
+            $('#sign').html(sign);
+            $('#title').html(title);
+            document.title = title;
+            // ==============================================
+            // 强制同步函数（防止在副页点链接后再点返回，返回后页面显示主页内容，但标签是副页）
+            // ==============================================
+            function forceSyncPageState() {
+                var isChecked = $('#qieh').is(':checked');
+                if (isChecked) {
+                    $('#app').hide();
+                    $('#app1').show();
+                } else {
+                    $('#app').show();
+                    $('#app1').hide();
+                }
+            }
+            
+            //重置到主页（仅首次访问时使用）
+            function resetToMainPage() {
+                $('#qieh').prop('checked', false);
+                forceSyncPageState();
+                sessionStorage.setItem('pageState', 'main');
+            }
+            
+            //从 sessionStorage 恢复状态
+            function restorePageState() {
+                var savedState = sessionStorage.getItem('pageState');
+                
+                // 如果没有保存状态，说明是首次访问，显示主页
+                if (!savedState) {
+                    resetToMainPage();
+                    return;
+                }
+                
+                // 如果有保存状态，恢复到保存的状态
+                if (savedState === 'secondary') {
+                    $('#qieh').prop('checked', true);
+                } else {
+                    $('#qieh').prop('checked', false);
+                }
+                forceSyncPageState();
+            }
+        
+            //监听复选框变化
+            $('#qieh').on('change', function() {
+                forceSyncPageState();
+                // 保存状态到 sessionStorage（仅当前会话有效）
+                sessionStorage.setItem('pageState', $(this).is(':checked') ? 'secondary' : 'main');
+            });
+            
+            //初始化
+            restorePageState();
+        
+            //监听 pageshow 事件（BFCache恢复）
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    console.log('[BFCache恢复] 重新同步');
+                    // 从 sessionStorage 恢复状态
+                    var saved = sessionStorage.getItem('pageState');
+                    if (saved === 'secondary') {
+                        $('#qieh').prop('checked', true);
+                    } else {
+                        $('#qieh').prop('checked', false);
+                    }
+                    forceSyncPageState();
+                }
+            });
+            //页面关闭时清除 sessionStorage
+            window.addEventListener('beforeunload', function() {
+                // 注意：这里不要清除，否则返回时无法恢复
+            });
+
+            // ==============================================
+            // 生成链接
+            // ==============================================
+            // 初始化单元格（适配arrA/arrB的实际长度，而非固定12个）
+            const maxLen = Math.max(arrA.length, arrB.length);
+            for (var i = 0; i < maxLen; i++) {
+                if (i < arrA.length) $('#ul1').append('<li id=liA' + i + '></li>');
+                if (i < arrB.length) $('#ul2').append('<li id=liB' + i + '></li>');
+            }
+
+            // 填入主页链接
+            for (var i = 0; i < arrA.length; i++) {
+                if (arrA[i] && arrA[i][0]) {
+                    const mainItem = arrA[i][0];
+                    $('#liA' + i).append(`<a id='A${i}' href="${getUrl(mainItem)}">
+                        <img class='shake' src='img/png/${mainItem.icon}.png' />
+                        <strong>${formatDisplayName(mainItem)}</strong>
+                    </a>`);
+                }
+            } 
+            // 填入副页链接
+            for (var i = 0; i < arrB.length; i++) {
+                if (arrB[i] && arrB[i][0]) {
+                    const mainItem = arrB[i][0];
+                    $('#liB' + i).append(`<a id='B${i}' href="${getUrl(mainItem)}">
+                        <img class='shake' src='img/png/${mainItem.icon}.png' />
+                        <strong>${formatDisplayName(mainItem)}</strong>
+                    </a>`);
+                }
+            }
+            
+            //将生成的链接打印到控制台
+            function getUrl(mainItem) {
+                const result = _getUrl(mainItem);
+                if(showUrl){
+                    console.log(`【${mainItem.name || 'unknown'}】→ ${result}`);
+                }
+                return result;
+            }
+
+            //网络环境检测前获取地址
+            function _getUrl(mainItem) {
+                //如果url存在，返回url
+                if (mainItem.url != undefined) {
+                    return mainItem.url
+                }
+
+                //lan存在且host为内网地址，则返回lan
+                if (mainItem.lan != undefined && host == lan_addr) {
+                    return mainItem.lan
+                }
+                //lan存在且检测到内网ip，则返回lan
+                if (mainItem.lan != undefined && window.inLan ) {
+                    return mainItem.lan
+                } 
+                //wan存在则返回wan
+                if (mainItem.wan != undefined) {
+                    return mainItem.wan
+                } 
+                //最终返回ports/port
+                if (mainItem.ports != undefined) {
+                    return `https://${host}:${mainItem.ports}/`
+                } 
+                return `http://${host}:${mainItem.port}/`
+            }
+
+            // ==============================================
+            // 菜单功能（右键 + 长按）
+            // ==============================================
+            const menu = $('#customMenu');
+            let longPressTimer = null;
+            const LONG_DELAY = 500;
+
+            // 关闭菜单
+            function closeMenu() {
+                menu.hide().empty();
+            }
+
+            // 显示菜单
+            function showMenu(id, e) {
+                //清空控制台
+                if(showUrl){
+                    console.clear();
+                }
+                // 解析id：A/B + 索引
+                const type = id[0];
+                const index = parseInt(id.slice(1));
+                // 获取对应菜单列表（新结构：arrA[index] 本身就是菜单数组）
+                const menuList = type === 'A' ? arrA[index] : arrB[index];
+
+                if (!menuList || menuList.length === 0) return;
+                e.preventDefault();
+                closeMenu();
+
+                // 构建菜单选项
+                
+                // 使用
+                menuList.slice(1).forEach(item => {
+                    const url = getUrl(item);
+                    const img = $('<img>').attr('src', `img/png/${item.icon}.png`);
+                    var span = $('<span>').html(formatDisplayName(item));
+                    if (item.url==undefined&&item.lan!=undefined) {
+                        //↑检查修改地址情况 ↓检查修改内网地址
+                        if(url.includes('192.168.')){
+                            span.html(`<u><i>${item.name}</i></u>`);
+                            //↓检查修改外网地址
+                        }else if(url.includes('simon233.dynv6.net')){
+                            span.html(`<span style="color:red;"><bold>${item.name}</bold></span>`);
+                        }
+                    }
+                    const div = $('<div class="item">')
+                        .append(img)
+                        .append(span)
+                        .data('url', url);
+
+                    if (url === '#none#') {
+                        div.addClass('disabled');
+                    }
+
+                    menu.append(div);
+                });
+
+                // 智能定位（手机端自动向上弹出）
+                // 获取位置
+                let pageX = e.pageX || e.originalEvent?.touches?.[0]?.pageX || 0;
+                let pageY = e.pageY || e.originalEvent?.touches?.[0]?.pageY || 0;
+                
+                // 获取菜单尺寸
+                menu.css({ left: -9999, top: -9999 }).show();
+                const menuWidth = menu.outerWidth();
+                const menuHeight = menu.outerHeight();
+                
+                const windowWidth = $(window).width();
+                const windowHeight = $(window).height();
+                const scrollY = $(window).scrollTop();
+                const viewportTop = scrollY;
+                const viewportBottom = scrollY + windowHeight;
+                
+                // X轴智能定位：优先右侧，右侧不够就左侧，都不行就居中
+                let finalX;
+                
+                // 计算右侧和左侧可用空间
+                const spaceRight = windowWidth - pageX - 10;  // 右侧剩余空间（留10px边距）
+                const spaceLeft = pageX - 10;                 // 左侧剩余空间（留10px边距）
+                
+                // 1. 优先尝试右侧显示
+                if (spaceRight >= menuWidth) {
+                    // 右侧空间充足，显示在右侧
+                    finalX = pageX + 10;
+                } 
+                // 2. 右侧不够，尝试左侧显示
+                else if (spaceLeft >= menuWidth) {
+                    // 左侧空间充足，显示在左侧
+                    finalX = pageX - menuWidth - 10;
+                } 
+                // 3. 左右都不够（菜单太宽），居中显示
+                else {
+                    // 居中显示，但要确保不超出边界
+                    finalX = (windowWidth - menuWidth) / 2;
+                    
+                    // 额外保险：如果居中后还是超出（理论上不会），强制适配
+                    finalX = Math.max(10, Math.min(windowWidth - menuWidth - 10, finalX));
+                }
+                
+                // Y轴定位：优先下方，下方不够就上方，都不行就居中（垂直居中）
+                let finalY;
+                
+                const spaceBelow = viewportBottom - pageY - 10;
+                const spaceAbove = pageY - viewportTop - 10;
+                
+                // 1. 优先下方显示
+                if (spaceBelow >= menuHeight) {
+                    finalY = pageY + 10;
+                } 
+                // 2. 下方不够，尝试上方显示
+                else if (spaceAbove >= menuHeight) {
+                    finalY = pageY - menuHeight - 10;
+                } 
+                // 3. 上下都不够（菜单太高），垂直居中
+                else {
+                    finalY = (viewportTop + viewportBottom - menuHeight) / 2;
+                    
+                    // 额外保险
+                    finalY = Math.max(viewportTop + 10, Math.min(viewportBottom - menuHeight - 10, finalY));
+                }
+                
+                // 最终定位
+                menu.css({
+                    left: finalX,
+                    top: finalY
+                });
+            }
+
+            // 点击空白关闭菜单
+            $(document).on('click contextmenu', (e) => {
+                if (!$(e.target).closest('#customMenu, [id^="A"], [id^="B"]').length) {
+                    closeMenu();
+                }
+            });
+
+            // 图标右键事件
+            $(document).on('contextmenu', '[id^="A"], [id^="B"]', function(e) {
+                showMenu($(this).attr('id'), e);
+                return false;
+            });
+
+            // 禁用页面其他区域的右键
+            $(document).on('contextmenu', function(e) {
+                if (!$(e.target).closest('[id^="A"], [id^="B"]').length) {
+                    return false;
+                }
+            });
+
+            // 图标长按事件
+            $(document)
+                .on('mousedown touchstart', '[id^="A"], [id^="B"]', function(e) {
+                    const id = $(this).attr('id');
+                    clearTimeout(longPressTimer);
+                    longPressTimer = setTimeout(() => {
+                        showMenu(id, e);
+                    }, LONG_DELAY);
+                })
+                .on('mouseup mouseleave touchend touchmove', '[id^="A"], [id^="B"]', () => {
+                    clearTimeout(longPressTimer);
+                });
+
+            // 菜单点击跳转
+            menu.on('click', '.item', function() {
+                const url = $(this).data('url');
+                // 只有 url 有效且非#none#才跳转
+                if (url && url !== '' && url !== '#none#') {
+                    location.href = url;
+                }
+                closeMenu();
+            });
+
+            
+            // ==============================================
+            // 最后一步，网络检测
+            // ==============================================
+            window.inLan = false;
+            if (host == lan_addr) {
+                let updateCount = changeInLan();
+                showToast(`通过内网IP访问(已更新 ${updateCount}个地址)，跳过网络环境检测`, 'success');
+                console.log(`通过内网IP访问(已更新 ${updateCount}个地址)，跳过网络环境检测`);
+                //内网IP访问，所有网址已生成完毕，程序结束
+            } else {
+                //非局域网ip访问，进行网络检测
+                checkLan();
+            }
+        //文档就绪函数结束
+        });
+
+        
+        // ==============================================
+        // 浮动提示框函数
+        // ==============================================
+        function showToast(message, type = 'info', duration = 2000) {
+            const $toast = $('#toast-message');
+            const $icon = $toast.find('.icon');
+            const $text = $toast.find('.text');
+
+            // 设置图标和样式
+            let icon = 'ℹ️';
+            let toastType = 'info';
+
+            switch (type) {
+                case 'success':
+                    icon = '✅';
+                    toastType = 'success';
+                    break;
+                case 'warning':
+                    icon = '⚠️';
+                    toastType = 'warning';
+                    break;
+                case 'error':
+                    icon = '❌';
+                    toastType = 'error';
+                    break;
+                case 'info':
+                default:
+                    icon = '🔄';
+                    toastType = 'info';
+                    break;
+            }
+
+            // 清除之前的定时器
+            if (window.toastTimer) {
+                clearTimeout(window.toastTimer);
+            }
+
+            // 设置内容和样式
+            $icon.html(icon);
+            $text.html(message);
+            $toast.removeClass('info success warning error').addClass(toastType);
+
+            // 显示提示框
+            $toast.addClass('show');
+
+            // 设置定时器隐藏
+            window.toastTimer = setTimeout(() => {
+                $toast.removeClass('show');
+            }, duration);
+        }
+
+        // 更新提示框内容（不重置计时器）
+        function updateToast(message, type = null) {
+            const $toast = $('#toast-message');
+            const $icon = $toast.find('.icon');
+            const $text = $toast.find('.text');
+
+            // 更新文本
+            $text.html(message);
+
+            // 如果指定了类型，更新图标和样式
+            if (type) {
+                let icon = 'ℹ️';
+                let toastType = 'info';
+
+                switch (type) {
+                    case 'success':
+                        icon = '✅';
+                        toastType = 'success';
+                        break;
+                    case 'warning':
+                        icon = '⚠️';
+                        toastType = 'warning';
+                        break;
+                    case 'error':
+                        icon = '❌';
+                        toastType = 'error';
+                        break;
+                    case 'info':
+                    default:
+                        icon = '🔄';
+                        toastType = 'info';
+                        break;
+                }
+
+                $icon.html(icon);
+                $toast.removeClass('info success warning error').addClass(toastType);
+            }
+        }
+        
+        // ==============================================
+        // 处理链接显示名称
+        // ==============================================
+        function formatDisplayName(item) {
+            let name = item.name;
+
+            // 1. 应用颜色
+            if (item.color != undefined) {
+                name = `<span style="color: ${item.color};">${name}</span>`;
+            }
+
+            // 2. 根据type属性添加HTML标签（支持字符串或数组）
+            const types = Array.isArray(item.type) ? item.type : (item.type ? [item.type] : []);
+
+            const typeHandlers = {
+                'small': (content) => `<small>${content}</small>`,
+                'big': (content) => `<big>${content}</big>`,
+                'bold': (content) => `<b>${content}</b>`,
+                'italic': (content) => `<i>${content}</i>`,
+                'mark': (content) => `<mark>${content}</mark>`,
+                'underline': (content) => `<u>${content}</u>`,
+                'delete': (content) => `<del>${content}</del>`,
+                'lan': (content) => `<u><i>${content}</i><u>`,
+                'ipv6': (content) => `<span style="color:red;"><bold>${content}</bold></span>`,
+                'vpn': (content) => `<span style="text-decoration: underline dotted pink">${content}</span>`,
+                'ddnsto': (content) => `<span style="background-color: #FF6632;border-radius:5px">${content}</span>`,
+                'qc': (content) => `<span style="background-color: #057FEB;border-radius:5px">${content}</span>`,
+                'console': (content) => `<span style="border: solid,2px,#FF6632;border-radius:5px">${content}</span>`,
+                'dynv6': (content) => `<span style="border: solid,2px,#CF0000;border-radius:5px">${content}</span>`
+
+            };
+
+            // 按顺序应用所有type
+            types.forEach(t => {
+                if (typeHandlers[t]) {
+                    name = typeHandlers[t](name);
+                } else {
+                    // 如果是自定义类型，作为CSS类
+                    name = `<span class="${t}">${name}</span>`;
+                }
+            });
+            return name;
+        }
+        // ==============================================
+        // 检测网络环境
+        // ==============================================
+        async function checkLan() {
+            // 显示检测中的提示 
+            
+            showToast('正在检测网络环境...', 'info', 3000);
+            
+            const isInside = await isIntranet();
+
+            if (isInside) {
+                window.inLan = true;
+
+                // 更新提示内容
+                updateToast('✓ 检测到内网环境，正在更新地址...', 'info');
+                let updateCount = changeInLan();
+                
+                // 显示成功提示
+                showToast(`✓ 内网环境配置完成 (已更新 ${updateCount}个地址)`, 'success');
+                console.log(`[网络环境]内网地址修改完毕(已更新 ${updateCount}个地址)`);
+            } else {
+                window.inLan = false;
+                console.log('[网络环境]检测为:外网');
+                console.log('[网络环境]edge浏览器追踪：edge://flags/，搜索 Anonymize local IPs exposed by WebRTC，disabled，重启');
+
+                // 更新提示内容
+                updateToast('🌐 检测到外网环境，正在更新地址...', 'info');
+
+                // 修改主图标地址
+                let updateCount = 0;
+                for (var i = 0; i < arrA.length; i++) {
+                    const mainItem = arrA[i] && arrA[i][0];
+                    //↓检查地址修改
+                    if (mainItem && mainItem.url == undefined&& mainItem.lan != undefined) {
+                        var url ='';
+                        if (mainItem.ports != undefined) {
+                            url= `https://${host}:${mainItem.ports}/`;
+                        } else{
+                            url= `http://${host}:${mainItem.port}/`;
+                        }
+                        var wanName= mainItem.name;
+                        if (mainItem.wan != undefined) {
+                            url = mainItem.wan;
+                            wanName = `<span style="background-color: #FF6632;border-radius:5px">${mainItem.name}</span>`;
+                        }
+                        $('#A' + i).attr('href', url);
+                        $("#A"+i+" strong").html(wanName);
+                        console.log(`[外网地址填充] ${mainItem.name || 'unknown'} -> ${url}`);
+                        updateCount++;
+                    }
+                }
+
+                console.log('[网络环境]外网地址填充完毕');
+
+                // 显示成功提示 info蓝色，error红色，success绿色，warning橙色
+                showToast(`🌐 外网环境配置完成 (已更新 ${updateCount} 个地址)`, 'info');
+            }
+            return;
+        }
+        function changeInLan(){
+            // 修改主图标地址
+                let updateCount = 0;
+                for (var i = 0; i < arrA.length; i++) {
+                    const mainItem = arrA[i] && arrA[i][0];
+                    //↓检查地址修改 无url有lan地址，则修改为lan地址
+                    if (mainItem && mainItem.url == undefined && mainItem.lan != undefined) {
+                        $('#A' + i).attr('href', mainItem.lan);
+                        $("#A"+i+" strong").html(`<u><i>${mainItem.name}</i></u>`);
+                        console.log(`[内网地址填充] ${mainItem.name || 'unknown'} -> ${mainItem.lan}`);
+                        updateCount++;
+                    }
+                }
+                return updateCount;
+        }
+        // 检测是否在内网环境
+        async function isIntranet() {
+            if(showCheck){
+                console.log('[内网检测] 开始检测...');
+            }
+            return new Promise((resolve) => {
+                const pc = new(window.RTCPeerConnection || window.webkitRTCPeerConnection)();
+                let resolved = false;
+                if(showCheck){
+                    console.log('[内网检测] RTCPeerConnection 实例创建成功');
+                }
+        
+                const timeout = setTimeout(() => {
+                    if (!resolved) {
+                        console.log('[内网检测] 超时（'+timeOut+'ms），判定为外网环境');
+                        pc.close();
+                        resolved = true;
+                        resolve(false);
+                    }
+                }, timeOut);
+                
+                if(showCheck){
+                console.log('[内网检测] 超时定时器已设置 ('+timeOut+'ms)');
+                }
+                
+                pc.createDataChannel('');
+                if(showCheck){
+                console.log('[内网检测] 数据通道已创建');
+                }
+                
+                
+                pc.onicecandidate = (event) => {
+                    if (!event.candidate || resolved) {
+                        if (!event.candidate) {
+                            if(showCheck){
+                            console.log('[内网检测] ICE 候选人为空，跳过');
+                            }
+                        }
+                        if (resolved) {
+                            if(showCheck){
+                            console.log('[内网检测] 已解析完成，忽略后续候选人');
+                            }
+                        }
+                        return;
+                    }
+        
+                    const candidateStr = event.candidate.candidate;
+                    if(showCheck){
+                        console.log('[内网检测] ICE 候选人:', candidateStr);
+                    }
+                    
+                    const ipv4Regex = /([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})/;
+                    const match = candidateStr.match(ipv4Regex);
+                    
+                    if (match) {
+                        const ip = match[0];
+                        console.log(`[内网检测] 提取到 IP 地址: ${ip}`);
+                        
+                        //这里用ip检测是否与lan_addr的网段相同
+                        if (ip.startsWith(getSegment(lan_addr))) {
+                            console.log(`[内网检测] ✓ IP ${ip} 匹配内网规则 (${getSegment(lan_addr)})，判定为【内网环境】`);
+                            clearTimeout(timeout);
+                            pc.close();
+                            resolved = true;
+                            resolve(true);
+                        } else {
+                            console.log(`[内网检测] IP ${ip} 不匹配内网规则，继续等待其他候选人`);
+                        }
+                    } else {
+                        console.log('[内网检测] 未能从候选人字符串中提取到 IPv4 地址');
+                    }
+                };
+        
+                pc.onicegatheringstatechange = () => {
+                    if(showCheck){
+                        console.log(`[内网检测] ICE 收集状态变更: ${pc.iceGatheringState}`);
+                    }
+                    if (pc.iceGatheringState === 'complete' && !resolved) {
+                        console.log('[内网检测] ICE 收集完成，未找到内网 IP，判定为外网环境');
+                        clearTimeout(timeout);
+                        pc.close();
+                        resolved = true;
+                        resolve(false);
+                    }
+                };
+        
+                pc.createOffer()
+                    .then(offer => {
+                        if(showCheck){
+                            console.log('[内网检测] Offer 创建成功，正在设置本地描述');
+                        }
+                        return pc.setLocalDescription(offer);
+                    })
+                    .then(() => {
+                        if(showCheck){
+                            console.log('[内网检测] 本地描述设置成功，开始收集 ICE 候选');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('[内网检测] 创建 Offer 或设置本地描述失败:', error);
+                        if (!resolved) {
+                            clearTimeout(timeout);
+                            pc.close();
+                            resolved = true;
+                            resolve(false);
+                        }
+                    });
+            });
+        }
+
+
+    </script>
+
+</body>
+
+</html>
